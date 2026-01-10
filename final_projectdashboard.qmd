@@ -1,7 +1,6 @@
 ---
 title: "GAPMINDER | LIFE EXPECTANCIES 2007"  
 format: dashboard   
-theme: superhero
 ---
 
 ```{python}
@@ -239,9 +238,8 @@ fig.show()
 
 ### Column {width="20%"}
 
-The chart shows a strong positive relationship between GDP per capita and life expectancy in 2005. Countries with higher income levels generally exhibit higher life expectancy, as reflected by the upward-sloping trend line. 
-
-The relationship is steep at lower income levels, indicating that modest increases in GDP are associated with substantial gains in life expectancy among poorer countries. At higher income levels, the curve begins to flatten, suggesting diminishing returns of income on life expectancy once basic social and health needs are met.
+The chart shows a strong positive relationship between GDP per capita and life expectancy in 2005. 
+The relationship is steep at lower income levels, indicating that modest increases in GDP are associated with substantial gains in life expectancy among poorer countries.
 
 
 ## Row 2 {height=50%}
@@ -276,7 +274,7 @@ fig.show()
 
 ### Column {width="20%"}
 
-The figure illustrates a positive relationship between GDP per capita and age at marriage across countries. As income levels increase, the average age at marriage also tends to rise, as shown by the upward-sloping regression line. The pattern is especially pronounced among lower-income countries, where small increases in GDP are associated with noticeable increases in marriage age. At higher income levels, the relationship becomes more dispersed, indicating that economic growth alone does not fully explain variations in marriage patterns. Overall, the chart suggests that economic development is an important, though not exclusive, factor influencing social and demographic behavior.
+The figure illustrates a positive relationship between GDP per capita and age at marriage across countries. As income levels increase, the average age at marriage also tends to rise, as shown by the upward-sloping regression line. 
 
 # DATA DOWNLOAD
 
