@@ -108,7 +108,7 @@ bar_fig = px.bar(
     y="Country",
     title="Top 15 Countries by GDP (2005)",
     color="Income",
-    color_continuous_scale="Blues",
+    color_continuous_scale="Oranges",
 ).update_layout(coloraxis_showscale=False)
 
 
@@ -160,7 +160,7 @@ bar_fig.show()
 
 # Page 2 - Regional Analysis
 
-## Row 1 {height=70%}
+## Row 1 {height=60%}
 
 ```{python}
 import plotly.express as px
@@ -185,7 +185,7 @@ fig = px.box(
 fig.show()
 ```
 
-## Row 2 {height=30%}
+## Row 2 {height=40%}
 
 ```{python}
 reg_sum = (
