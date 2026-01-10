@@ -278,14 +278,7 @@ The figure illustrates a positive relationship between GDP per capita and age at
 
 # DATA DOWNLOAD
 
-## Row 1 {height=33%}
-
-```{python}
-# Display full dataset with itables
-itables.show(marriage, caption="Age at first Marriage - Gapminder Dataset (2005)", buttons=["csvHtml5"])
-```
-
-## Row 2 {height=33%}
+## Row 1 {height=50%}
 
 ```{python}
 # Display full dataset with itables
@@ -293,7 +286,7 @@ itables.show(life_long, caption="Life Expectancy - Gapminder Dataset (2005)", bu
 ```
 
 
-## Row 3 
+## Row 2 
 
 ```{python}
 # Display full dataset with itables
