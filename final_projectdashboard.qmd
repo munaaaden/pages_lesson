@@ -1,0 +1,314 @@
+---
+title: "GAPMINDER | LIFE EXPECTANCIES 2007"  
+format: dashboard   
+theme: superhero
+---
+
+```{python}
+import pandas as pd
+import plotly.express as px
+import itables 
+
+# File paths
+marriage_file = "Age_of_marriage.xlsx"
+life_file = "Life_Expectancy.csv"
+GDP_file = "gdp_per_capita.xlsx"
+
+# Load the datasets
+marriage = pd.read_excel(marriage_file)
+life = pd.read_csv(life_file)
+Gdp= pd.read_excel(GDP_file)
+```
+
+```{python}
+# Convert wide to long format
+life_long = pd.melt(
+    life,
+    id_vars=["Country"],        # column to keep
+    var_name="Year",            # new column name for years
+    value_name="Life_Expectancy"  # new column name for values
+)
+
+# Convert Year to integer 
+life_long["Year"] = life_long["Year"].astype(int)
+
+# Save cleaned dataset
+life_long.to_csv("life_expectancy_long.csv", index=False)
+```
+
+```{python}
+Gdp.columns = Gdp.columns.str.strip()
+
+# Filter for year 2005
+Gdp = Gdp.query("Year == 2005")
+
+# Sort by GDP (Income)
+highest_gdp_row = Gdp.sort_values("Income", ascending=False).head(1).squeeze()
+lowest_gdp_row  = Gdp.sort_values("Income", ascending=True).head(1).squeeze()
+
+# Extract values
+highest_gdp_country = highest_gdp_row["Country"]
+highest_gdp_value   = round(highest_gdp_row["Income"])
+
+lowest_gdp_country = lowest_gdp_row["Country"]
+lowest_gdp_value   = round(lowest_gdp_row["Income"])
+
+# Filter for year 2005
+life_long = life_long.query("Year == 2005")
+# Compute highest life expectancy
+highest_row = life_long.sort_values("Life_Expectancy", ascending=False).head(1).squeeze()
+highest_life_exp_country = highest_row["Country"]
+highest_life_exp_value = round(highest_row["Life_Expectancy"], 1)
+
+# Compute lowest life expectancy
+lowest_row = life_long.sort_values("Life_Expectancy", ascending=True).head(1).squeeze()
+lowest_life_exp_country = lowest_row["Country"]
+lowest_life_exp_value = round(lowest_row["Life_Expectancy"], 1)
+
+# Highest age of marriage
+highest_marriage = marriage.sort_values("Age", ascending=False).head(1).squeeze()
+highest_marriage_country = highest_marriage["Country"]
+highest_marriage_value = round(highest_marriage["Age"], 1)
+
+# Lowest age of marriage
+lowest_marriage = marriage.sort_values("Age", ascending=True).head(1).squeeze()
+lowest_marriage_country = lowest_marriage["Country"]
+lowest_marriage_value = round(lowest_marriage["Age"], 1)
+```
+
+
+```{python}
+
+age_min = marriage["Age"].min()
+age_max = marriage["Age"].max()
+# Create the map using plotly express with a orange color scale
+map1 = px.choropleth(
+    marriage,
+    locations="Country",
+    locationmode="country names",
+    color="Age",
+    hover_name="Country",
+    title="Map of Countries by Age at Marriage (2025)",
+    color_continuous_scale="Oranges",
+    range_color=[age_min, age_max]
+)
+
+
+
+# Largest 20 countries by Life Expectancy (bar chart) with a blue color scale
+top_15 = (
+    Gdp
+    .nlargest(15, "Income")
+    .sort_values("Income", ascending=True)
+)
+
+bar_fig = px.bar(
+    top_15,
+    x="Income",
+    y="Country",
+    title="Top 15 Countries by GDP (2005)",
+    color="Income",
+    color_continuous_scale="Blues",
+).update_layout(coloraxis_showscale=False)
+
+
+```
+
+
+# Page 1 - Home
+
+## Row 1 {height=30%}
+
+::: {.valuebox icon="heart" color="#1E90FF" title="Highest GDP"}
+
+`{python} str(highest_gdp_value)`
+
+`{python} highest_gdp_country`
+
+:::
+
+::: {.valuebox icon="thermometer" color="#87CEFA" title="Highest Age of Marriage"} 
+
+`{python} str(highest_marriage_value)`
+
+`{python} highest_marriage_country`
+
+:::
+
+::: {.valuebox icon="graph-up" color="#4682B4" title="Highest Life Expectancy"}
+
+`{python} str(highest_life_exp_value)`
+
+`{python} highest_life_exp_country`
+:::
+
+
+## Row 2 {height=60%}
+
+### {width=70%}
+
+```{python}
+map1.show()
+```
+
+### {width=40%}
+
+```{python}
+bar_fig.show()
+```
+
+
+# Page 2 - Regional Analysis
+
+## Row 1 {height=70%}
+
+```{python}
+import plotly.express as px
+
+# Load continent mapping from Plotly's gapminder dataset
+continent_map = px.data.gapminder()[["country", "continent"]].drop_duplicates()
+
+# Standardize names for merging
+continent_map.columns = ["Country", "Continent"]
+
+# Merge into marriage dataframe
+marriage_reg = marriage.merge(continent_map, on="Country", how="left")
+
+fig = px.box(
+    marriage_reg,
+    x="Continent",
+    y="Age",
+    title="Distribution of Age at Marriage by Region",
+    color="Continent"
+)
+
+fig.show()
+```
+
+## Row 2 {height=30%}
+
+```{python}
+reg_sum = (
+    marriage_reg.groupby("Continent")
+    .apply(
+        lambda g: pd.Series({
+            "Average Age at Marriage": g["Age"].mean(),
+            "Lowest Age at Marriage": g["Age"].min(),
+            "Country with Lowest Age": g.loc[g["Age"].idxmin(), "Country"],
+            "Highest Age at Marriage": g["Age"].max(),
+            "Country with Highest Age": g.loc[g["Age"].idxmax(), "Country"],
+        })
+    )
+    .round(2)
+)
+
+import itables
+itables.show(reg_sum)
+
+```
+
+# Page 3 - Statistical Analysis
+
+## Row 1 {height=50%}
+
+### Column {width="80%"}
+
+```{python}
+# Relationship between GDP and Life Expectancy
+analysis_life = Gdp.merge(life_long, on=["Country", "Year"], how="inner")
+
+analysis_life["Income_k"] = analysis_life["Income"] / 1000        # thousands USD
+analysis_life["Life_10"]  = analysis_life["Life_Expectancy"] / 10
+
+fig = px.scatter(
+    analysis_life,
+    x="Income_k",
+    y="Life_10",
+    trendline="ols",
+    hover_name="Country",
+    labels={
+        "Income_k": "GDP per capita (thousands USD)",
+        "Life_10": "Life Expectancy (tens of years)"
+    },
+    title="Relationship Between GDP and Life Expectancy (2005)"
+)
+
+fig.show()
+```
+
+
+### Column {width="20%"}
+
+The chart shows a strong positive relationship between GDP per capita and life expectancy in 2005. Countries with higher income levels generally exhibit higher life expectancy, as reflected by the upward-sloping trend line. 
+
+The relationship is steep at lower income levels, indicating that modest increases in GDP are associated with substantial gains in life expectancy among poorer countries. At higher income levels, the curve begins to flatten, suggesting diminishing returns of income on life expectancy once basic social and health needs are met.
+
+
+## Row 2 {height=50%}
+
+### Column {width="80%"}
+
+```{python}
+# Remove missing age values
+marriage_clean = marriage.dropna(subset=["Age"])
+
+# Merge GDP with Marriage data
+analysis_df = Gdp.merge(marriage_clean, on="Country", how="inner")
+
+analysis_df["Income_k"] = analysis_df["Income"] / 1000    # thousands
+analysis_df["Age_10"]   = analysis_df["Age"] / 10         # tens
+
+fig = px.scatter(
+    analysis_df,
+    x="Income_k",
+    y="Age_10",
+    trendline="ols",
+    hover_name="Country",
+    labels={
+        "Income_k": "GDP per capita (thousands)",
+        "Age_10": "Age at Marriage (tens of years)"
+    },
+    title="Relationship Between GDP and Age at Marriage"
+)
+
+fig.show()
+```
+
+### Column {width="20%"}
+
+The figure illustrates a positive relationship between GDP per capita and age at marriage across countries. As income levels increase, the average age at marriage also tends to rise, as shown by the upward-sloping regression line. The pattern is especially pronounced among lower-income countries, where small increases in GDP are associated with noticeable increases in marriage age. At higher income levels, the relationship becomes more dispersed, indicating that economic growth alone does not fully explain variations in marriage patterns. Overall, the chart suggests that economic development is an important, though not exclusive, factor influencing social and demographic behavior.
+
+# DATA DOWNLOAD
+
+## Row 1 {height=33%}
+
+```{python}
+# Display full dataset with itables
+itables.show(marriage, caption="Age at first Marriage - Gapminder Dataset (2005)", buttons=["csvHtml5"])
+```
+
+## Row 2 {height=33%}
+
+```{python}
+# Display full dataset with itables
+itables.show(life_long, caption="Life Expectancy - Gapminder Dataset (2005)", buttons=["csvHtml5"])
+```
+
+
+## Row 3 
+
+```{python}
+# Display full dataset with itables
+itables.show(Gdp, caption="GDP Per Country - Gapminder Dataset (2005)", buttons=["csvHtml5"])
+```
+
+
+# ABOUT
+
+This data comes from the python `plotly.express` library’s `gapminder` dataset, which is originally sourced from the Gapminder Foundation.
+
+The Gapminder Foundation is a non-profit venture that promotes sustainable global development and achievement of the United Nations Millennium Development Goals by increasing use and understanding of statistics and other information about social, economic, and environmental development.
+
+**Watch Hans Rosling’s TED Talk:**
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/hVimVzgtD6w?si=dKHepC5EXhjaXOe2" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
