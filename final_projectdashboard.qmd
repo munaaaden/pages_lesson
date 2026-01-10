@@ -1,6 +1,7 @@
 ---
-title: "GAPMINDER | LIFE EXPECTANCIES 2007"  
-format: dashboard   
+title: "GAPMINDER DATA ANALYSIS FOR 2005"  
+format: dashboard 
+Author: Muna A Aden  
 ---
 
 ```{python}
